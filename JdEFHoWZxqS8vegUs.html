@@ -1,0 +1,232 @@
+<html><head><base href="https://uk.ixl.com/maths/year-8/round-decimals"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Round 'n' Roll: Decimal Challenge</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
+
+    body {
+        font-family: 'Fredoka', sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: linear-gradient(135deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        color: #333;
+    }
+    .heading {
+        font-size: 3rem;
+        font-weight: 600;
+        color: #FFCC70;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .widget {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        padding: 30px;
+        width: 400px;
+        text-align: center;
+    }
+    .question {
+        font-size: 24px;
+        margin-bottom: 25px;
+        color: #1E3A8A;
+        font-weight: bold;
+    }
+    input[type="text"] {
+        width: 120px;
+        padding: 12px;
+        font-size: 18px;
+        margin-right: 10px;
+        border: 3px solid #FFCC70;
+        border-radius: 10px;
+        text-align: center;
+        background-color: #FFF;
+        color: #1E3A8A;
+        font-family: 'Fredoka', sans-serif;
+    }
+    .submit-btn {
+        background: linear-gradient(45deg, #FF9A8B 0%, #FF6A88 55%, #FF99AC 100%);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        font-size: 18px;
+        cursor: pointer;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        font-family: 'Fredoka', sans-serif;
+        font-weight: 600;
+    }
+    .submit-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(255, 106, 136, 0.4);
+    }
+    .stats {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 30px;
+        background: linear-gradient(135deg, #FFF 0%, #FFD1FF 100%);
+        padding: 15px;
+        border-radius: 15px;
+    }
+    .stat {
+        text-align: center;
+    }
+    .stat-label {
+        font-size: 14px;
+        color: #1E3A8A;
+        margin-bottom: 5px;
+    }
+    .stat-value {
+        font-size: 26px;
+        font-weight: bold;
+        color: #FF6A88;
+    }
+    .timer {
+        display: flex;
+        justify-content: center;
+        font-size: 22px;
+        color: #1E3A8A;
+    }
+    .timer-unit {
+        margin: 0 2px;
+    }
+    .high-score {
+        background-color: #FFCC70;
+        color: #1E3A8A;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 14px;
+        display: inline-block;
+    }
+    #feedback {
+        margin-top: 20px;
+        font-size: 18px;
+        font-weight: bold;
+    }
+    .correct {
+        color: #4CAF50;
+    }
+    .incorrect {
+        color: #f44336;
+    }
+</style>
+</head>
+<body>
+    <h1 class="heading">Round 'n' Roll: Decimal Challenge!</h1>
+    <div class="widget">
+        <div class="question" id="question"></div>
+        <input type="text" id="answer" placeholder="Your guess" autofocus>
+        <button class="submit-btn" onclick="checkAnswer()">Round It!</button>
+        
+        <div id="feedback"></div>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-label">Rounds</div>
+                <div class="stat-value" id="questions-answered">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Time</div>
+                <div class="timer">
+                    <span class="timer-unit" id="minutes">00</span>:
+                    <span class="timer-unit" id="seconds">00</span>
+                </div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">High Score</div>
+                <div class="stat-value">
+                    <span class="high-score" id="high-score">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let questionsAnswered = 0;
+        let seconds = 0;
+        let score = 0;
+        let highScore = 0;
+        let questionStartTime;
+        let currentNumber;
+        let timerInterval;
+
+        function initializeGame() {
+            questionsAnswered = 0;
+            seconds = 0;
+            score = 0;
+            updateStats();
+            generateNewQuestion();
+            questionStartTime = Date.now();
+            clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function checkAnswer() {
+            const userAnswer = document.getElementById('answer').value;
+            const correctAnswer = Math.round(currentNumber);
+            const timeTaken = (Date.now() - questionStartTime) / 1000;
+
+            if (parseInt(userAnswer) === correctAnswer) {
+                const pointsEarned = Math.max(10 - Math.floor(timeTaken), 1);
+                score += pointsEarned;
+                showFeedback(`Awesome! +${pointsEarned} points`, 'correct');
+                questionsAnswered++;
+            } else {
+                showFeedback(`Oops! The correct answer was ${correctAnswer}.`, 'incorrect');
+            }
+
+            updateStats();
+            generateNewQuestion();
+        }
+
+        function showFeedback(message, className) {
+            const feedback = document.getElementById('feedback');
+            feedback.textContent = message;
+            feedback.className = className;
+            setTimeout(() => {
+                feedback.textContent = '';
+                feedback.className = '';
+            }, 2000);
+        }
+
+        function updateStats() {
+            document.getElementById('questions-answered').textContent = questionsAnswered;
+            document.getElementById('high-score').textContent = Math.max(score, highScore);
+            highScore = Math.max(score, highScore);
+        }
+
+        function generateNewQuestion() {
+            currentNumber = (Math.random() * 100).toFixed(3);
+            document.getElementById('question').textContent = `Round ${currentNumber} to the nearest whole number:`;
+            document.getElementById('answer').value = '';
+            questionStartTime = Date.now();
+            document.getElementById('answer').focus();
+        }
+
+        function updateTimer() {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+            document.getElementById('seconds').textContent = remainingSeconds.toString().padStart(2, '0');
+            seconds++;
+        }
+
+        document.getElementById('answer').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        window.onload = initializeGame;
+    </script>
+</body>
+</html>
